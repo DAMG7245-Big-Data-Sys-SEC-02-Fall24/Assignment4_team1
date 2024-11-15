@@ -137,8 +137,24 @@ backend/.idea/inspectionProfiles/Project_Default.xml
 secrets/
 */.DS_Store
 
+
+credentials.json
+scrap/
+
 # poetry 
 
 poetry.lock 
 
 checkpoints.db
+# DB Files gitignore
+
+.db
+.db-shm 
+.db-wal
+
+checkpoints.db
+
+checkpoints.db-wal
+
+checkpoints.db-shm
+
