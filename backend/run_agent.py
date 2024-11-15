@@ -6,9 +6,10 @@ from langchain_core.runnables import RunnableConfig
 
 load_dotenv()
 
-from agents import DEFAULT_AGENT, agents  # noqa: E402
+from backend.agents.agents import DEFAULT_AGENT, agents  # noqa: E402
 
 agent = agents[DEFAULT_AGENT]
+agent = agents["bg-task-agent"]
 
 
 async def main() -> None:
@@ -26,7 +27,7 @@ async def main() -> None:
     # export LDFLAGS="-L $(brew --prefix graphviz)/lib"
     # pip install pygraphviz
     #
-    # agent.get_graph().draw_png("agent_diagram.png")
+    agent.get_graph().draw_png("agent_diagram.png")
 
 
 asyncio.run(main())
