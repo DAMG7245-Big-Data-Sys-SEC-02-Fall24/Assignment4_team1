@@ -1,6 +1,12 @@
 # Assignment4_team1
 
-
+- **GitHub Issues and Tasks**: [Link to GitHub Project Issues](https://github.com/orgs/DAMG7245-Big-Data-Sys-SEC-02-Fall24/projects/5/views/1)
+- **Codelabs Documentation**: [Link to Codelabs](https://codelabs-preview.appspot.com/?file_id=19Cc7ENcPD3stMhuAxUrLN1PzeU9Op94COaqU1Mfd9Oo#0)
+- **Project Submission Video (5 Minutes)**: [Link to Submission Video](https://drive.google.com/drive/folders/1wgYeUY-HsDuWcqGq1hSNVRQ3gvQBMLZC)
+- **Hosted Application Links**:
+  - **Frontend (Streamlit)**: [Link to Streamlit Application](http://35.238.130.102:8501/)
+  - **Backend (FastAPI)**: [Link to FastAPI Application](http://35.238.130.102:8000/docs)
+  - **Data Processing Service (Airflow)**: [Link to Data Processing Service](http://35.238.130.102:8080)
 # Research Tool with Airflow, Pinecone, and Langraph
 
 ## Overview
