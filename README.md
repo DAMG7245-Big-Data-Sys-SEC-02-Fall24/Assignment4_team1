@@ -395,7 +395,7 @@ Team Members:
 
 Uday Kiran Dasari - Airflow, Agents, Backend ,Docker - 33.3%
 
-Sai Surya Madhav Rebbapragada - Agents, Backend, Frontend, Integratrion, Frontend - 33.3%
+Sai Surya Madhav Rebbapragada - Agents, Backend, Frontend, Integratrion - 33.3%
 
 Akash Varun Pennamaraju - Agents, Backend , integration - 33.3%
 
