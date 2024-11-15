@@ -32,10 +32,10 @@ API_BASE_URL = os.getenv("API_BASE_URL")
 # Available LLM models
 MODELS = {
     "OpenAI GPT-4o-mini (streaming)": "gpt-4o-mini",
-    "Gemini 1.5 Flash (streaming)": "gemini-1.5-flash",
-    "Claude 3 Haiku (streaming)": "claude-3-haiku",
-    "llama-3.1-70b on Groq": "llama-3.1-70b",
-    "AWS Bedrock Haiku (streaming)": "bedrock-haiku",
+    # "Gemini 1.5 Flash (streaming)": "gemini-1.5-flash",
+    # "Claude 3 Haiku (streaming)": "claude-3-haiku",
+    # "llama-3.1-70b on Groq": "llama-3.1-70b",
+    # "AWS Bedrock Haiku (streaming)": "bedrock-haiku",
 }
 
 # Session state defaults
@@ -45,7 +45,7 @@ SESSION_DEFAULTS = {
     'current_page': 'Home',
     'thread_id': None,
     'messages': [],
-    'last_feedback': (None, None)
+    # 'last_feedback': (None, None)
 }
 
 def initialize_session_state():
@@ -197,6 +197,8 @@ async def setup_agent_client():
     """Initialize the agent client if not already present."""
     if "agent_client" not in st.session_state:
         agent_url = os.getenv("AGENT_URL", "http://localhost:8000")
+        print("-----Acess token---")
+        print(st.session_state.get("access_token"))
         st.session_state.agent_client = AgentClient(agent_url)
 
     if "thread_id" not in st.session_state:
@@ -223,7 +225,7 @@ def setup_sidebar():
                 "Agent to use",
                 options=["research-assistant", "chatbot"],
             )
-            st.session_state['use_streaming'] = st.toggle("Stream results", value=True)
+            st.session_state['use_streaming'] = True
 
         # Navigation
         st.subheader("Navigation")
@@ -340,21 +342,21 @@ async def handle_tool_calls(tool_calls, messages_agen, is_new):
         status.write(tool_result.content)
         status.update(state="complete")
 
-async def handle_feedback() -> None:
-    """Handle user feedback for messages."""
-    latest_run_id = st.session_state.messages[-1].run_id
-    feedback = st.feedback("stars", key=latest_run_id)
+# async def handle_feedback() -> None:
+#     """Handle user feedback for messages."""
+#     latest_run_id = st.session_state.messages[-1].run_id
+#     feedback = st.feedback("stars", key=latest_run_id)
 
-    if feedback is not None and (latest_run_id, feedback) != st.session_state.last_feedback:
-        normalized_score = (feedback + 1) / 5.0
-        await st.session_state.agent_client.acreate_feedback(
-            run_id=latest_run_id,
-            key="human-feedback-stars",
-            score=normalized_score,
-            kwargs={"comment": "In-line human feedback"},
-        )
-        st.session_state.last_feedback = (latest_run_id, feedback)
-        st.toast("Feedback recorded", icon="⭐")
+#     if feedback is not None and (latest_run_id, feedback) != st.session_state.last_feedback:
+#         normalized_score = (feedback + 1) / 5.0
+#         await st.session_state.agent_client.acreate_feedback(
+#             run_id=latest_run_id,
+#             key="human-feedback-stars",
+#             score=normalized_score,
+#             kwargs={"comment": "In-line human feedback"},
+#         )
+#         st.session_state.last_feedback = (latest_run_id, feedback)
+#         st.toast("Feedback recorded", icon="⭐")
 
 async def chat_interface():
     """Display and handle the chat interface."""
@@ -375,13 +377,14 @@ async def chat_interface():
         st.chat_message("human").write(user_input)
         
         use_streaming = st.session_state.get('use_streaming', True)
-        model = st.session_state.get('model', MODELS["Claude 3 Haiku (streaming)"])
+        model = st.session_state.get('model', MODELS["OpenAI GPT-4o-mini (streaming)"])
         
         if use_streaming:
             stream = st.session_state.agent_client.astream(
                 message=user_input,
                 model=model,
                 thread_id=st.session_state.thread_id,
+                
             )
             print("Streaming response")
             print(stream)
@@ -396,9 +399,9 @@ async def chat_interface():
             st.chat_message("ai").write(response.content)
         st.rerun()
 
-    if len(messages) > 0:
-        with st.session_state.last_message:
-            await handle_feedback()
+    # if len(messages) > 0:
+    #     with st.session_state.last_message:
+    #         # await handle_feedback()
 
 async def main():
     """Main application entry point."""
@@ -421,3 +424,4 @@ async def main():
 
 if __name__ == "__main__":
     asyncio.run(main())
+

@@ -1,6 +1,5 @@
 import streamlit as st
 
-# from services.utils import authenticate_user
 from services.utils import authenticate_user, register_user, logout_user, refresh_access_token
 from services.session_store import session_store  
 class Authentication:

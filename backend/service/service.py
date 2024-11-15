@@ -225,27 +225,27 @@ async def stream(
 async def agent_stream(
     user_input: StreamInput,
     agent_id: str,
-    current_user: str = Depends(get_current_user)
+    # current_user: str = Depends(get_current_user)
 ) -> StreamingResponse:
     return StreamingResponse(
         message_generator(user_input, agent_id=agent_id), 
         media_type="text/event-stream"
     )
 
-@router.post("/feedback")
-async def feedback(
-    feedback: Feedback,
-    current_user: str = Depends(get_current_user)
-) -> FeedbackResponse:
-    client = LangsmithClient()
-    kwargs = feedback.kwargs or {}
-    client.create_feedback(
-        run_id=feedback.run_id,
-        key=feedback.key,
-        score=feedback.score,
-        **kwargs,
-    )
-    return FeedbackResponse()
+# @router.post("/feedback")
+# async def feedback(
+#     feedback: Feedback,
+#     current_user: str = Depends(get_current_user)
+# ) -> FeedbackResponse:
+#     client = LangsmithClient()
+#     kwargs = feedback.kwargs or {}
+#     client.create_feedback(
+#         run_id=feedback.run_id,
+#         key=feedback.key,
+#         score=feedback.score,
+#         **kwargs,
+#     )
+#     return FeedbackResponse()
 
 @router.post("/history")
 async def history(
