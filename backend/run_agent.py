@@ -9,16 +9,20 @@ load_dotenv()
 from backend.agents.agents import DEFAULT_AGENT, agents  # noqa: E402
 
 agent = agents[DEFAULT_AGENT]
-agent = agents["bg-task-agent"]
 
 
 async def main() -> None:
-    inputs = {"messages": [("user", "Find me a recipe for chocolate chip cookies")]}
+    inputs = {"messages": [("user", "Research on the latest advancements in RAG models")]}
     result = await agent.ainvoke(
         inputs,
-        config=RunnableConfig(configurable={"thread_id": uuid4()}),
+        config={"recursion_limit": 50, "thread_id": uuid4()},
     )
-    result["messages"][-1].pretty_print()
+    print("\n====== Final Result ======\n\n\n\n\n\n")
+    print(result["final_report"])
+    # if DEFAULT_AGENT == "research_agent":
+    #     print(result["final_report"])
+    # else:
+    #     result["messages"][-1].pretty_print()
 
     # Draw the agent graph as png
     # requires:

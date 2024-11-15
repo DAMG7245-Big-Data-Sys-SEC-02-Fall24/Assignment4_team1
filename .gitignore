@@ -141,3 +141,4 @@ secrets/
 
 poetry.lock 
 
+checkpoints.db
