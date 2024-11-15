@@ -23,7 +23,117 @@ logging.basicConfig(
     format="%(asctime)s [%(levelname)s] %(message)s",
     handlers=[logging.StreamHandler()]
 )
+import streamlit as st
 
+def display_login_page():
+    """Display the login page with features overview."""
+    # Configure page
+    st.set_page_config(
+        page_title="AI Chat Platform",
+        page_icon="🤖",
+        layout="centered"
+    )
+
+    # Title and description
+    st.title("Welcome to AI Chat Platform")
+    st.caption("Experience the next generation of conversational AI")
+    
+    # Create three columns for features
+    col1, col2, col3, col4 = st.columns(4)
+    
+    with col1:
+        st.info("🤖\nAdvanced AI Chat")
+    with col2:
+        st.info("🌍\nMultiple Languages")
+    with col3:
+        st.info("⚡\nReal-time Streaming")
+    with col4:
+        st.info("📝\nChat History")
+
+    # Add some space
+    st.divider()
+
+    # Display appropriate form based on state
+    if session_store.get_value('display_login'):
+        display_login_form()
+    elif session_store.get_value('display_register'):
+        display_register_form()
+
+def display_login_form():
+    """Display the login form."""
+    st.subheader("Login")
+    
+    with st.form("login_form", clear_on_submit=True):
+        email = st.text_input("Email")
+        password = st.text_input("Password", type="password")
+        
+        # Center the submit button using columns
+        col1, col2, col3 = st.columns([1,2,1])
+        with col2:
+            submit = st.form_submit_button("Login", use_container_width=True)
+
+        if submit:
+            if not email or not password:
+                st.error("Please enter both email and password.")
+                return
+                
+            try:
+                auth.login(email, password)
+                st.success("Logged in successfully!")
+                st.session_state['current_page'] = 'Home'
+                st.rerun()
+            except Exception as e:
+                st.error(f"Login failed: {str(e)}")
+
+    # Center the register button using columns
+    col1, col2, col3 = st.columns([1,2,1])
+    with col2:
+        if st.button("Create New Account", use_container_width=True, type="secondary"):
+            show_register_form()
+
+def display_register_form():
+    """Display the registration form."""
+    st.subheader("Create New Account")
+    
+    with st.form("register_form", clear_on_submit=True):
+        username = st.text_input("Username")
+        email = st.text_input("Email")
+        password = st.text_input("Password", type="password")
+        
+        # Center the submit button using columns
+        col1, col2, col3 = st.columns([1,2,1])
+        with col2:
+            submit = st.form_submit_button("Register", use_container_width=True)
+
+        if submit:
+            if not username or not email or not password:
+                st.error("Please fill in all fields.")
+                return
+                
+            try:
+                auth.register(username, email, password)
+                st.success("Registered successfully! Please log in.")
+                show_login_form()
+            except Exception as e:
+                st.error(f"Registration failed: {str(e)}")
+
+    # Center the back button using columns
+    col1, col2, col3 = st.columns([1,2,1])
+    with col2:
+        if st.button("Back to Login", use_container_width=True, type="secondary"):
+            show_login_form()
+
+def show_register_form():
+    """Switch to registration form view."""
+    session_store.set_value('display_login', False)
+    session_store.set_value('display_register', True)
+    st.rerun()
+
+def show_login_form():
+    """Switch to login form view."""
+    session_store.set_value('display_login', True)
+    session_store.set_value('display_register', False)
+    st.rerun()
 # Constants
 APP_TITLE = "AI Chat Platform"
 APP_ICON = "💬"
@@ -37,6 +147,8 @@ MODELS = {
     # "llama-3.1-70b on Groq": "llama-3.1-70b",
     # "AWS Bedrock Haiku (streaming)": "bedrock-haiku",
 }
+
+
 
 # Session state defaults
 SESSION_DEFAULTS = {
@@ -61,137 +173,6 @@ def clear_session_storage():
         del st.session_state[key]
     initialize_session_state()
 
-def setup_page_config():
-    """Configure page settings and styling."""
-    st.set_page_config(
-        page_title=APP_TITLE,
-        page_icon=APP_ICON,
-        menu_items={},
-    )
-
-    # Apply custom styling using markdown
-    st.markdown("""
-        <style>
-        [data-testid="stStatusWidget"] {
-            visibility: hidden;
-            height: 0%;
-            position: fixed;
-        }
-        .container {
-            text-align: center;            
-            font-family: Arial, sans-serif;
-        }
-        .title {
-            font-size: 2.5em;
-            color: #2E86C1;
-            margin-bottom: 10px;
-        }
-        .features {
-            background-color: #f5f5f5;
-            padding: 15px;
-            border-radius: 10px;
-            margin-bottom: 20px;
-        }
-        .stButton > button {
-            width: 100%;
-        }
-        .stTextInput > div > div > input {
-            background-color: white;
-        }
-        </style>
-    """, unsafe_allow_html=True)
-
-def display_login_page():
-    """Display the login page with features overview."""
-    st.markdown("""
-        <div class="container">
-            <div class="title">AI Chat Platform</div>            
-            <div class="features">
-                <h3>Features available:</h3>
-                <ul>
-                    <li>Advanced AI Chat Capabilities</li>
-                    <li>Multiple Language Model Options</li>
-                    <li>Real-time Streaming Responses</li>
-                    <li>Interactive Conversation History</li>
-                </ul>
-            </div>            
-        </div>
-    """, unsafe_allow_html=True)
-
-    if session_store.get_value('display_login'):
-        display_login_form()
-    elif session_store.get_value('display_register'):
-        display_register_form()
-
-def display_login_form():
-    """Display the login form."""
-    st.subheader("Login")
-    
-    with st.form("login_form", clear_on_submit=True):
-        col1, col2 = st.columns([3, 1])
-        with col1:
-            email = st.text_input("Email")
-            password = st.text_input("Password", type="password")
-            submit = st.form_submit_button("Login", use_container_width=True)
-
-        if submit:
-            if not email or not password:
-                st.error("Please enter both email and password.")
-                return
-                
-            try:
-                auth.login(email, password)
-                st.success("Logged in successfully!")
-                st.session_state['current_page'] = 'Home'
-                st.rerun()
-            except Exception as e:
-                st.error(f"Login failed: {str(e)}")
-
-    col1, col2, col3 = st.columns([1, 2, 1])
-    with col2:
-        if st.button("Create New Account", use_container_width=True):
-            show_register_form()
-
-def display_register_form():
-    """Display the registration form."""
-    st.subheader("Create New Account")
-    
-    with st.form("register_form", clear_on_submit=True):
-        col1, col2 = st.columns([3, 1])
-        with col1:
-            username = st.text_input("Username")
-            email = st.text_input("Email")
-            password = st.text_input("Password", type="password")
-            submit = st.form_submit_button("Register", use_container_width=True)
-
-        if submit:
-            if not username or not email or not password:
-                st.error("Please fill in all fields.")
-                return
-                
-            try:
-                auth.register(username, email, password)
-                st.success("Registered successfully! Please log in.")
-                show_login_form()
-            except Exception as e:
-                st.error(f"Registration failed: {str(e)}")
-
-    col1, col2, col3 = st.columns([1, 2, 1])
-    with col2:
-        if st.button("Back to Login", use_container_width=True):
-            show_login_form()
-
-def show_register_form():
-    """Switch to registration form view."""
-    session_store.set_value('display_login', False)
-    session_store.set_value('display_register', True)
-    st.rerun()
-
-def show_login_form():
-    """Switch to login form view."""
-    session_store.set_value('display_login', True)
-    session_store.set_value('display_register', False)
-    st.rerun()
 
 async def setup_agent_client():
     """Initialize the agent client if not already present."""
@@ -342,21 +323,6 @@ async def handle_tool_calls(tool_calls, messages_agen, is_new):
         status.write(tool_result.content)
         status.update(state="complete")
 
-# async def handle_feedback() -> None:
-#     """Handle user feedback for messages."""
-#     latest_run_id = st.session_state.messages[-1].run_id
-#     feedback = st.feedback("stars", key=latest_run_id)
-
-#     if feedback is not None and (latest_run_id, feedback) != st.session_state.last_feedback:
-#         normalized_score = (feedback + 1) / 5.0
-#         await st.session_state.agent_client.acreate_feedback(
-#             run_id=latest_run_id,
-#             key="human-feedback-stars",
-#             score=normalized_score,
-#             kwargs={"comment": "In-line human feedback"},
-#         )
-#         st.session_state.last_feedback = (latest_run_id, feedback)
-#         st.toast("Feedback recorded", icon="⭐")
 
 async def chat_interface():
     """Display and handle the chat interface."""
@@ -405,8 +371,7 @@ async def chat_interface():
 
 async def main():
     """Main application entry point."""
-    initialize_session_state()
-    setup_page_config()
+    initialize_session_state()    
     
     if not session_store.is_authenticated():
         display_login_page()

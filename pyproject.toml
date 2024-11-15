@@ -34,13 +34,16 @@ langgraph-checkpoint = "^2.0.4"
 langgraph-checkpoint-sqlite = "^2.0.1"
 langsmith = "^0.1.143"
 numexpr = "^2.10.1"
-pydantic = "^2.9.2"
+pydantic = {extras = ["email"], version = "^2.9.2"}
 pyowm = "^3.3.0"
 setuptools = "^75.5.0"
 streamlit = "^1.40.1"
 duckduckgo-search = "^6.3.4"
 langchain-aws = "^0.2.7"
 serpapi = "^0.1.5"
+python-jose = "^3.3.0"
+passlib = "^1.7.4"
+psycopg2 = "^2.9.10"
 
 
 
