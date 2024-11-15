@@ -1,6 +1,6 @@
 # Assignment4_team1
 
-- **GitHub Issues and Tasks**: [Link to GitHub Project Issues](https://github.com/orgs/DAMG7245-Big-Data-Sys-SEC-02-Fall24/projects/6))
+- **GitHub Issues and Tasks**: [Link to GitHub Project Issues](https://github.com/orgs/DAMG7245-Big-Data-Sys-SEC-02-Fall24/projects/6)
 - **Codelabs Documentation**: [Link to Codelabs](https://codelabs-preview.appspot.com/?file_id=19Cc7ENcPD3stMhuAxUrLN1PzeU9Op94COaqU1Mfd9Oo#0)
 - **Project Submission Video (5 Minutes)**: [Link to Submission Video](https://drive.google.com/drive/folders/1wgYeUY-HsDuWcqGq1hSNVRQ3gvQBMLZC)
 - **Hosted Application Links**:
