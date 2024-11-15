@@ -1,0 +1,9 @@
+{
+    "dockerfile_lines": [],
+    "graphs": {
+        "agent": "/Users/saisuryamadhav/Documents/University/Assignment4_team1/backend/agents/chatbot.py:chatbot"
+    },
+    "env": ".env",
+    "python_version": "3.11",
+    "dependencies": ["."]
+}

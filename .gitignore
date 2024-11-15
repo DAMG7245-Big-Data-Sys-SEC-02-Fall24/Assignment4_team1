@@ -145,6 +145,7 @@ scrap/
 
 poetry.lock 
 
+checkpoints.db
 # DB Files gitignore
 
 .db
