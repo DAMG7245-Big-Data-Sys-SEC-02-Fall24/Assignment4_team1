@@ -137,6 +137,10 @@ backend/.idea/inspectionProfiles/Project_Default.xml
 secrets/
 */.DS_Store
 
+
+credentials.json
+scrap/
+
 # poetry 
 
 poetry.lock 
@@ -152,5 +156,4 @@ checkpoints.db
 checkpoints.db-wal
 
 checkpoints.db-shm
-
 
