@@ -1,0 +1,32 @@
+services:
+  backend:
+    build:
+      context: ./backend
+      dockerfile: Dockerfile
+    #image: udaykirandasari/assignment2_backend:latest
+    container_name: backend-container1
+    ports:
+      - "8000:8000"
+      - "9090:9090"
+    env_file:
+      - ./.env
+    volumes:
+      - ./secrets:/app/secrets:ro
+
+  frontend:
+    build:
+      context: ./frontend
+      dockerfile: Dockerfile
+    #image: udaykirandasari/assignment2_frontend:latest
+    container_name: frontend-container1
+    ports:
+      - "8501:8501"
+    env_file:
+      - ./.env
+    depends_on:
+      - backend
+    volumes:
+      - ./secrets:/app/secrets:ro
+
+volumes:
+  postgres_data:

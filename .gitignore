@@ -158,3 +158,4 @@ checkpoints.db-wal
 
 checkpoints.db-shm
 
+langgraph.json
