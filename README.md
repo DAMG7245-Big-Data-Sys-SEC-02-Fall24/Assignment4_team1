@@ -346,7 +346,7 @@ Each stage in the pipeline is automated, allowing new documents to be processed 
 
 ## 3. Langraph - Multi-Agent System for Research Assistance
 
-![](./assets/application_architecture.png)
+![](.assets/SCR-20241115-ocwo.png)
 
 **Purpose**: Langraph manages a multi-agent research system that interacts with documents and provides contextual answers to user queries. It is particularly useful for research workflows, as it supports multiple agents with specialized roles.
 
