@@ -7,35 +7,56 @@ from contextlib import asynccontextmanager
 from typing import Annotated, Any
 from uuid import uuid4
 
-from fastapi import APIRouter, Depends, FastAPI, HTTPException, status
-from fastapi.responses import StreamingResponse
-from fastapi.security import HTTPAuthorizationCredentials, HTTPBearer
+from fastapi import APIRouter, Depends, FastAPI, HTTPException, Request, status
+from fastapi.responses import JSONResponse, StreamingResponse
+from fastapi.security import HTTPAuthorizationCredentials, HTTPBearer, OAuth2PasswordBearer
+from fastapi.openapi.utils import get_openapi
 from langchain_core._api import LangChainBetaWarning
 from langchain_core.messages import AnyMessage, HumanMessage
 from langchain_core.runnables import RunnableConfig
 from langgraph.checkpoint.sqlite.aio import AsyncSqliteSaver
 from langgraph.graph.state import CompiledStateGraph
 from langsmith import Client as LangsmithClient
-
+from jose import JWTError
+from sqlalchemy.orm import Session
+from backend.routes import auth_routes
+from backend.services.auth_service import verify_token
+from backend.services.database_service import get_db
 from backend.agents.agents import DEFAULT_AGENT, agents
 from backend.schema.schema import (
-    ChatHistory,
-    ChatHistoryInput,
-    ChatMessage,
-    Feedback,
-    FeedbackResponse,
-    StreamInput,
-    UserInput,
+    ChatHistory, ChatHistoryInput, ChatMessage,
+    Feedback, FeedbackResponse, StreamInput, UserInput,
 )
 from backend.service.utils import (
     convert_message_content_to_string,
     langchain_to_chat_message,
     remove_tool_calls,
 )
+from backend.services.auth_service import verify_token
+from backend.services.database_service import get_db
 
+# Setup logging and warnings
 warnings.filterwarnings("ignore", category=LangChainBetaWarning)
 logger = logging.getLogger(__name__)
 
+# JWT Authentication setup
+oauth2_scheme = OAuth2PasswordBearer(tokenUrl="auth/login")
+
+
+# Authentication dependency
+async def get_current_user(token: str = Depends(oauth2_scheme)):
+    credentials_exception = HTTPException(
+        status_code=status.HTTP_401_UNAUTHORIZED,
+        detail="Could not validate credentials",
+        headers={"WWW-Authenticate": "Bearer"},
+    )
+    try:
+        email = verify_token(token)
+        if email is None:
+            raise credentials_exception
+        return email
+    except JWTError:
+        raise credentials_exception
 
 def verify_bearer(
     http_auth: Annotated[
@@ -46,24 +67,35 @@ def verify_bearer(
     if http_auth.credentials != os.getenv("AUTH_SECRET"):
         raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED)
 
-
 bearer_depend = [Depends(verify_bearer)] if os.getenv("AUTH_SECRET") else None
-
 
 @asynccontextmanager
 async def lifespan(app: FastAPI) -> AsyncGenerator[None, None]:
-    # Construct agent with Sqlite checkpointer
-    # TODO: It's probably dangerous to share the same checkpointer on multiple agents
     async with AsyncSqliteSaver.from_conn_string("checkpoints.db") as saver:
         for a in agents.values():
             a.checkpointer = saver
         yield
-    # context manager will clean up the AsyncSqliteSaver on exit
+
+# Initialize FastAPI app
+app = FastAPI(
+    title="User Authentication API",
+    description="This is a user authentication API with JWT-based protection.",
+    version="1.0",
+    lifespan=lifespan
+)
 
 
-app = FastAPI(lifespan=lifespan)
+app.include_router(auth_routes.router, prefix="/auth", tags=["Authentication"])
+
+# Global exception handler
+@app.exception_handler(Exception)
+async def global_exception_handler(request: Request, exc: Exception):
+    return JSONResponse(
+        status_code=500,
+        content={"error": "An unexpected error occurred.", "details": str(exc)}
+    )
+
 router = APIRouter(dependencies=bearer_depend)
-
 
 def _parse_input(user_input: UserInput) -> tuple[dict[str, Any], str]:
     run_id = uuid4()
@@ -75,7 +107,6 @@ def _parse_input(user_input: UserInput) -> tuple[dict[str, Any], str]:
         ),
     }
     return kwargs, run_id
-
 
 async def ainvoke(user_input: UserInput, agent_id: str = DEFAULT_AGENT) -> ChatMessage:
     agent: CompiledStateGraph = agents[agent_id]
@@ -89,57 +120,56 @@ async def ainvoke(user_input: UserInput, agent_id: str = DEFAULT_AGENT) -> ChatM
         logger.error(f"An exception occurred: {e}")
         raise HTTPException(status_code=500, detail="Unexpected error")
 
+# Root endpoint
+@app.get("/")
+def read_root(current_user: str = Depends(get_current_user)):
+    return {"message": "Welcome to the User Authentication API"}
 
+# Health check route
+@app.get("/health")
+async def health_check():
+    return {"status": "ok"}
+
+# Protected route example
+@app.get("/protected")
+async def protected_route(
+    current_user: str = Depends(get_current_user),
+    db: Session = Depends(get_db)
+):
+    return {"message": f"You have access to this protected route, {current_user}"}
+
+# Route handlers
 @router.post("/invoke")
-async def invoke(user_input: UserInput) -> ChatMessage:
-    """
-    Invoke the default agent with user input to retrieve a final response.
-
-    Use thread_id to persist and continue a multi-turn conversation. run_id kwarg
-    is also attached to messages for recording feedback.
-    """
+async def invoke(user_input: UserInput, current_user: str = Depends(get_current_user)) -> ChatMessage:
     return await ainvoke(user_input=user_input)
 
-
 @router.post("/{agent_id}/invoke")
-async def agent_invoke(user_input: UserInput, agent_id: str) -> ChatMessage:
-    """
-    Invoke an agent with user input to retrieve a final response.
-
-    Use thread_id to persist and continue a multi-turn conversation. run_id kwarg
-    is also attached to messages for recording feedback.
-    """
+async def agent_invoke(
+    user_input: UserInput, 
+    agent_id: str, 
+    current_user: str = Depends(get_current_user)
+) -> ChatMessage:
     return await ainvoke(user_input=user_input, agent_id=agent_id)
 
-
 async def message_generator(
-    user_input: StreamInput, agent_id: str = DEFAULT_AGENT
+    user_input: StreamInput, 
+    agent_id: str = DEFAULT_AGENT
 ) -> AsyncGenerator[str, None]:
-    """
-    Generate a stream of messages from the agent.
-
-    This is the workhorse method for the /stream endpoint.
-    """
     agent: CompiledStateGraph = agents[agent_id]
     kwargs, run_id = _parse_input(user_input)
 
-    # Process streamed events from the graph and yield messages over the SSE stream.
     async for event in agent.astream_events(**kwargs, version="v2"):
         if not event:
             continue
 
         new_messages = []
-        # Yield messages written to the graph state after node execution finishes.
         if (
             event["event"] == "on_chain_end"
-            # on_chain_end gets called a bunch of times in a graph execution
-            # This filters out everything except for "graph node finished"
             and any(t.startswith("graph:step:") for t in event.get("tags", []))
             and "messages" in event["data"]["output"]
         ):
             new_messages = event["data"]["output"]["messages"]
 
-        # Also yield intermediate messages from agents.utils.CustomData.adispatch().
         if event["event"] == "on_custom_event" and "custom_data_dispatch" in event.get("tags", []):
             new_messages = [event["data"]]
 
@@ -151,12 +181,10 @@ async def message_generator(
                 logger.error(f"Error parsing message: {e}")
                 yield f"data: {json.dumps({'type': 'error', 'content': 'Unexpected error'})}\n\n"
                 continue
-            # LangGraph re-sends the input message, which feels weird, so drop it
             if chat_message.type == "human" and chat_message.content == user_input.message:
                 continue
             yield f"data: {json.dumps({'type': 'message', 'content': chat_message.model_dump()})}\n\n"
 
-        # Yield tokens streamed from LLMs.
         if (
             event["event"] == "on_chat_model_stream"
             and user_input.stream_tokens
@@ -164,14 +192,10 @@ async def message_generator(
         ):
             content = remove_tool_calls(event["data"]["chunk"].content)
             if content:
-                # Empty content in the context of OpenAI usually means
-                # that the model is asking for a tool to be invoked.
-                # So we only print non-empty content.
                 yield f"data: {json.dumps({'type': 'token', 'content': convert_message_content_to_string(content)})}\n\n"
             continue
 
     yield "data: [DONE]\n\n"
-
 
 def _sse_response_example() -> dict[int, Any]:
     return {
@@ -186,46 +210,33 @@ def _sse_response_example() -> dict[int, Any]:
         }
     }
 
-
 @router.post("/stream", response_class=StreamingResponse, responses=_sse_response_example())
-async def stream(user_input: StreamInput) -> StreamingResponse:
-    """
-    Stream the default agent's response to a user input, including intermediate messages and tokens.
-
-    Use thread_id to persist and continue a multi-turn conversation. run_id kwarg
-    is also attached to all messages for recording feedback.
-
-    Set `stream_tokens=false` to return intermediate messages but not token-by-token.
-    """
+async def stream(
+    user_input: StreamInput,
+    current_user: str = Depends(get_current_user)
+) -> StreamingResponse:
     return StreamingResponse(message_generator(user_input), media_type="text/event-stream")
 
-
 @router.post(
-    "/{agent_id}/stream", response_class=StreamingResponse, responses=_sse_response_example()
+    "/{agent_id}/stream", 
+    response_class=StreamingResponse, 
+    responses=_sse_response_example()
 )
-async def agent_stream(user_input: StreamInput, agent_id: str) -> StreamingResponse:
-    """
-    Stream an agent's response to a user input, including intermediate messages and tokens.
-
-    Use thread_id to persist and continue a multi-turn conversation. run_id kwarg
-    is also attached to all messages for recording feedback.
-
-    Set `stream_tokens=false` to return intermediate messages but not token-by-token.
-    """
+async def agent_stream(
+    user_input: StreamInput,
+    agent_id: str,
+    current_user: str = Depends(get_current_user)
+) -> StreamingResponse:
     return StreamingResponse(
-        message_generator(user_input, agent_id=agent_id), media_type="text/event-stream"
+        message_generator(user_input, agent_id=agent_id), 
+        media_type="text/event-stream"
     )
 
-
 @router.post("/feedback")
-async def feedback(feedback: Feedback) -> FeedbackResponse:
-    """
-    Record feedback for a run to LangSmith.
-
-    This is a simple wrapper for the LangSmith create_feedback API, so the
-    credentials can be stored and managed in the service rather than the client.
-    See: https://api.smith.langchain.com/redoc#tag/feedback/operation/create_feedback_api_v1_feedback_post
-    """
+async def feedback(
+    feedback: Feedback,
+    current_user: str = Depends(get_current_user)
+) -> FeedbackResponse:
     client = LangsmithClient()
     kwargs = feedback.kwargs or {}
     client.create_feedback(
@@ -236,13 +247,11 @@ async def feedback(feedback: Feedback) -> FeedbackResponse:
     )
     return FeedbackResponse()
 
-
 @router.post("/history")
-def history(input: ChatHistoryInput) -> ChatHistory:
-    """
-    Get chat history.
-    """
-    # TODO: Hard-coding DEFAULT_AGENT here is wonky
+async def history(
+    input: ChatHistoryInput,
+    current_user: str = Depends(get_current_user)
+) -> ChatHistory:
     agent: CompiledStateGraph = agents[DEFAULT_AGENT]
     try:
         state_snapshot = agent.get_state(
@@ -259,5 +268,35 @@ def history(input: ChatHistoryInput) -> ChatHistory:
         logger.error(f"An exception occurred: {e}")
         raise HTTPException(status_code=500, detail="Unexpected error")
 
+# Custom OpenAPI Schema
+def custom_openapi():
+    if app.openapi_schema:
+        return app.openapi_schema
+        
+    openapi_schema = get_openapi(
+        title="User Authentication API",
+        version="1.0",
+        description="This is a user authentication API with JWT-based protection.",
+        routes=app.routes,
+    )
+    
+    openapi_schema["components"]["securitySchemes"] = {
+        "bearerAuth": {
+            "type": "http",
+            "scheme": "bearer",
+            "bearerFormat": "JWT",
+        }
+    }
+    
+    for path in openapi_schema["paths"]:
+        for method in openapi_schema["paths"][path]:
+            if "security" in openapi_schema["paths"][path][method]:
+                openapi_schema["paths"][path][method]["security"] = [{"bearerAuth": []}]
+    
+    app.openapi_schema = openapi_schema
+    return app.openapi_schema
 
+app.openapi = custom_openapi
+
+# Include main router
 app.include_router(router)

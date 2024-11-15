@@ -141,3 +141,16 @@ secrets/
 
 poetry.lock 
 
+# DB Files gitignore
+
+.db
+.db-shm 
+.db-wal
+
+checkpoints.db
+
+checkpoints.db-wal
+
+checkpoints.db-shm
+
+
