@@ -3,7 +3,7 @@ from uuid import uuid4
 
 from dotenv import load_dotenv
 from langchain_core.runnables import RunnableConfig
-
+from backend.scripts.codelab import process_markdown_string
 load_dotenv()
 
 from backend.agents.agents import DEFAULT_AGENT, agents  # noqa: E402
@@ -19,6 +19,7 @@ async def main() -> None:
     )
     print("\n====== Final Result ======\n\n\n\n\n\n")
     print(result["final_report"])
+    process_markdown_string(result["final_report"])
     # if DEFAULT_AGENT == "research_agent":
     #     print(result["final_report"])
     # else:

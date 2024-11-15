@@ -37,7 +37,27 @@ def main(md_path:'str'):
 
     # Serve the codelab
     serve_codelab()
-
+def process_markdown_string(markdown_content: str):
+    """Process markdown string by saving to output_markdown folder and running main function."""
+    import os
+    from datetime import datetime
+    
+    # Create output_markdown folder if it doesn't exist
+    output_dir = "output_markdown"
+    os.makedirs(output_dir, exist_ok=True)
+    
+    # Generate filename with timestamp
+    timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
+    file_path = os.path.join(output_dir, f"codelab_{timestamp}.md")
+    print(f"Processing markdown content to file: {file_path}")
+    # Write content to file
+    with open(file_path, 'w') as f:
+        f.write(markdown_content)
+    print(f"Processing markdown content to file: {file_path}")
+    try:
+        main(file_path)
+    finally:
+        os.unlink(file_path)  # Clean up the file after processing
 
 if __name__ == "__main__":
     main("/Users/udaykiran/Desktop/BigData/Assignments/Assignment4_team1/poc/abc/research_summary_20241115_012352.md")
