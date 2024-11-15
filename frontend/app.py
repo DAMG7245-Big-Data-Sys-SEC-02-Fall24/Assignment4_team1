@@ -70,6 +70,7 @@ def display_login_form():
         # Center the submit button using columns
         col1, col2, col3 = st.columns([1,2,1])
         with col2:
+            print("----Submit button----")
             submit = st.form_submit_button("Login", use_container_width=True)
 
         if submit:

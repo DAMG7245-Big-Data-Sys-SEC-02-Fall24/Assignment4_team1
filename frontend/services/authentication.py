@@ -15,6 +15,8 @@ class Authentication:
 
     def login(self, email, password):
         """ Process login and set session state upon success """
+        print("-------LOGIN--------")
+        print(email)
         if email and password:
             with st.spinner("Authenticating..."):
                 success, error_message = authenticate_user(email, password)

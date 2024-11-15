@@ -12,14 +12,14 @@ agent = agents[DEFAULT_AGENT]
 
 
 async def main() -> None:
-    inputs = {"messages": [("user", "Research on the latest advancements in RAG models")]}
-    result = await agent.ainvoke(
-        inputs,
-        config={"recursion_limit": 50, "thread_id": uuid4()},
-    )
-    print("\n====== Final Result ======\n\n\n\n\n\n")
-    print(result["final_report"])
-    process_markdown_string(result["final_report"])
+    inputs = {"messages": [("user", "Research on the Passive investing strategy")]}
+    # result = await agent.ainvoke(
+    #     inputs,
+    #     config={"recursion_limit": 50, "thread_id": uuid4()},
+    # )
+    # print("\n====== Final Result ======\n\n\n\n\n\n")
+    # print(result["final_report"])
+    # process_markdown_string(result["final_report"])
     # if DEFAULT_AGENT == "research_agent":
     #     print(result["final_report"])
     # else:

@@ -10,6 +10,8 @@ API_BASE_URL = os.getenv("API_BASE_URL")
 
 def authenticate_user(email, password):
     login_url = f"{API_BASE_URL}/auth/login"
+    print("-------LOGIN URL--------")
+    print(login_url)
     try:
         response = requests.post(login_url, data={"email": email, "password": password})
         if response.status_code == 200:

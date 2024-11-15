@@ -54,10 +54,10 @@ def process_markdown_string(markdown_content: str):
     with open(file_path, 'w') as f:
         f.write(markdown_content)
     print(f"Processing markdown content to file: {file_path}")
-    try:
-        main(file_path)
-    finally:
-        pass
+    # try:
+    #     main(file_path)
+    # finally:
+    #     pass
     #     os.unlink(file_path)  # Clean up the file after processing
 
 if __name__ == "__main__":
