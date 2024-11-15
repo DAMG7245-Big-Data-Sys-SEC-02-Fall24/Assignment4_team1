@@ -4,8 +4,8 @@ from uuid import uuid4
 from langchain_core.messages import BaseMessage
 from langchain_core.runnables import RunnableConfig
 
-from agents.utils import CustomData
-from schema.task_data import TaskData
+from backend.agents.utils import CustomData
+from backend.schema.task_data import TaskData
 
 
 class Task:

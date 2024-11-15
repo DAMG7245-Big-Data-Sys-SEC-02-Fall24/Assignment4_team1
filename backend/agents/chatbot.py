@@ -4,7 +4,7 @@ from langchain_core.runnables import RunnableConfig, RunnableLambda, RunnableSer
 from langgraph.checkpoint.memory import MemorySaver
 from langgraph.graph import END, MessagesState, StateGraph
 
-from agents.models import models
+from backend.agents.models import models
 
 
 class AgentState(MessagesState, total=False):

@@ -17,8 +17,8 @@ from langgraph.checkpoint.sqlite.aio import AsyncSqliteSaver
 from langgraph.graph.state import CompiledStateGraph
 from langsmith import Client as LangsmithClient
 
-from agents import DEFAULT_AGENT, agents
-from schema import (
+from backend.agents.agents import DEFAULT_AGENT, agents
+from backend.schema.schema import (
     ChatHistory,
     ChatHistoryInput,
     ChatMessage,
@@ -27,7 +27,7 @@ from schema import (
     StreamInput,
     UserInput,
 )
-from service.utils import (
+from backend.service.utils import (
     convert_message_content_to_string,
     langchain_to_chat_message,
     remove_tool_calls,

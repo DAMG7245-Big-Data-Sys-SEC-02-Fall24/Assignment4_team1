@@ -5,7 +5,7 @@ from typing import Any
 
 import httpx
 
-from schema import ChatHistory, ChatHistoryInput, ChatMessage, Feedback, StreamInput, UserInput
+from backend.schema.schema import ChatHistory, ChatHistoryInput, ChatMessage, Feedback, StreamInput, UserInput
 
 
 class AgentClient:

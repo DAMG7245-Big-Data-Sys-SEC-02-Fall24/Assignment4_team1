@@ -1,8 +1,8 @@
 #### ASYNC ####
 import asyncio
 
-from client import AgentClient
-from schema import ChatMessage
+from backend.client import AgentClient
+from backend.schema.schema import ChatMessage
 
 
 async def amain() -> None:
