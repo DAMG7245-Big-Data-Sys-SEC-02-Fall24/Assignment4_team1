@@ -11,7 +11,7 @@ from docling.datamodel.pipeline_options import PdfPipelineOptions
 from docling.datamodel.settings import settings
 from docling.document_converter import DocumentConverter, PdfFormatOption
 from docling_core.types.doc import ImageRefMode, PictureItem, TableItem
-from scraper import scrape_publications,close_driver
+#from scraper import scrape_publications,close_driver
 # Set up logging to a file
 logging.basicConfig(
     level=logging.INFO,
@@ -48,7 +48,7 @@ def export_documents(
             doc_filename = conv_res.input.file.stem
 
             # Export JSON, YAML, doctags, markdown, and text
-            # if USE_V2:
+            if USE_V2:
             #     with (output_dir / f"{doc_filename}.json").open("w") as fp:
             #         fp.write(json.dumps(conv_res.document.export_to_dict()))
 
@@ -58,8 +58,8 @@ def export_documents(
             #     # with (output_dir / f"{doc_filename}.doctags.txt").open("w") as fp:
             #     #     fp.write(conv_res.document.export_to_document_tokens())
 
-            #     with (output_dir / f"{doc_filename}.md").open("w") as fp:
-            #         fp.write(conv_res.document.export_to_markdown())
+                with (output_dir / f"{doc_filename}.md").open("w") as fp:
+                    fp.write(conv_res.document.export_to_markdown())
 
             #     # with (output_dir / f"{doc_filename}.txt").open("w") as fp:
             #     #     fp.write(conv_res.document.export_to_markdown(strict_text=True))
@@ -91,12 +91,12 @@ def export_documents(
 
             # Export markdown with embedded images
             content_md = conv_res.document.export_to_markdown(image_mode=ImageRefMode.EMBEDDED)
-            md_filename = markdown_output_dir / f"{doc_filename}-with-images.md"
-            json_filename=markdown_output_dir / f"{doc_filename}-with-images.json"
-            with md_filename.open("w") as fp:
-                fp.write(content_md)
-            with json_filename.open("w") as fp:
-                fp.write(json.dumps(conv_res.document.export_to_dict()))
+            #md_filename = markdown_output_dir / f"{doc_filename}-with-images.md"
+            #json_filename=markdown_output_dir / f"{doc_filename}-with-images.json"
+            # with md_filename.open("w") as fp:
+            #     fp.write(content_md)
+            # with json_filename.open("w") as fp:
+            #     fp.write(json.dumps(conv_res.document.export_to_dict()))
                 
 
         elif conv_res.status == ConversionStatus.PARTIAL_SUCCESS:
@@ -117,8 +117,8 @@ def export_documents(
 def main():
     logging.basicConfig(level=logging.INFO)
 
-    df=scrape_publications()
-    close_driver()
+    #df=scrape_publications()
+    #close_driver()
 
     input_doc_paths = list(Path("./data/pdfs").glob("*.pdf"))
 

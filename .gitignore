@@ -136,3 +136,6 @@ backend/.idea/inspectionProfiles/profiles_settings.xml
 backend/.idea/inspectionProfiles/Project_Default.xml 
 secrets/
 */.DS_Store
+
+credentials.json
+scrap/

@@ -30,15 +30,15 @@ chrome_options.add_argument("--headless")
 # chrome_options.add_argument("--disable-dev-shm-usage")
 
 # Connect to the remote Selenium server
-# driver = webdriver.Chrome(
-#     options=chrome_options
-# )
-
-# Connect to the remote Selenium server (selenium-chrome service)
-driver = webdriver.Remote(
-    command_executor="http://selenium-chrome:4444/wd/hub",
+driver = webdriver.Chrome(
     options=chrome_options
 )
+
+# Connect to the remote Selenium server (selenium-chrome service)
+# driver = webdriver.Remote(
+#     command_executor="http://selenium-chrome:4444/wd/hub",
+#     options=chrome_options
+# )
 
 # Define a global ID counter outside the functions
 global_id_counter = 1
@@ -184,7 +184,7 @@ def close_driver():
     driver.quit()
 import pathlib
 print(pathlib.Path.cwd())
-# df= scrape_publications()
-# print(df.head())
-# close_driver()
+df= scrape_publications()
+print(df.head())
+close_driver()
 # df
