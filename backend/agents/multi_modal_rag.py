@@ -101,6 +101,7 @@ async def generate_report(state: AgentState, config: RunnableConfig) -> AgentSta
     report_prompt = """Create a concise research report based on the findings.
     
     Format:
+    ID: [Title of the report]
     # Research Summary
     [Brief overview]
     

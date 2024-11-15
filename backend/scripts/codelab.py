@@ -57,7 +57,8 @@ def process_markdown_string(markdown_content: str):
     try:
         main(file_path)
     finally:
-        os.unlink(file_path)  # Clean up the file after processing
+        pass
+    #     os.unlink(file_path)  # Clean up the file after processing
 
 if __name__ == "__main__":
     main("/Users/udaykiran/Desktop/BigData/Assignments/Assignment4_team1/poc/abc/research_summary_20241115_012352.md")
