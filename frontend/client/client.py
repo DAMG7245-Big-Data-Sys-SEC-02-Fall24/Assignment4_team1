@@ -13,7 +13,7 @@ class AgentClient:
 
     def __init__(
         self,
-        base_url: str = "http://localhost:80",
+        base_url: str = "http://localhost:8000",
         agent: str = "research-assistant",
         timeout: float | None = None,
     ) -> None:
